@@ -67,50 +67,23 @@ def auto_predict():
 
 def get_live_pm_values(city="Hyderabad"):
     try:
-        url = f"https://api.openaq.org/v3/latest?city={city}&parameter=pm25&parameter=pm10"
-        headers = {'accept': 'application/json'}
-        response = requests.get(url, headers=headers)
-        results = response.json()["results"]
+        url = f"https://api.openaq.org/v3/latest?city={city}&parameter=pm25,pm10"
+        response = requests.get(url)
+        response.raise_for_status()
+        results = response.json().get("results", [])
 
         for location in results:
             pm25 = pm10 = None
-            for m in location["measurements"]:
+            for m in location.get("measurements", []):
                 if m["parameter"] == "pm25":
                     pm25 = m["value"]
                 elif m["parameter"] == "pm10":
                     pm10 = m["value"]
             if pm25 is not None and pm10 is not None:
                 return pm25, pm10
-    except:
+    except Exception as e:
+        print("❌ Error fetching live data:", e)
         return None, None
-
-@app.route('/dashboard')
-def dashboard():
-    data = []
-    timestamps, pm25_values, pm10_values, aqi_values = [], [], [], []
-
-    try:
-        with open('prediction_log.csv', newline='') as file:
-            reader = csv.reader(file)
-            next(reader)
-            for row in reader:
-                if len(row) == 4:
-                    data.append(row)
-        data.sort(reverse=True)
-        for row in data:
-            timestamps.append(row[0])
-            pm25_values.append(float(row[1]))
-            pm10_values.append(float(row[2]))
-            aqi_values.append(float(row[3]))
-    except FileNotFoundError:
-        pass
-
-    return render_template('dashboard.html',
-                           data=data,
-                           timestamps=timestamps,
-                           pm25_values=pm25_values,
-                           pm10_values=pm10_values,
-                           aqi_values=aqi_values)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
