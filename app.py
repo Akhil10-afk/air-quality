@@ -5,6 +5,7 @@ import csv
 import os
 from datetime import datetime
 import requests
+from pytz import timezone  # ✅ added
 
 app = Flask(__name__)
 model = joblib.load("model.pkl")
@@ -24,6 +25,9 @@ def predict():
     pm10 = data["pm10"]
     prediction = model.predict([[pm25, pm10]])[0]
 
+    ist = timezone('Asia/Kolkata')
+    timestamp = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+
     log_file = 'prediction_log.csv'
     file_exists = os.path.isfile(log_file)
 
@@ -31,7 +35,7 @@ def predict():
         writer = csv.writer(log)
         if not file_exists:
             writer.writerow(['timestamp', 'pm25', 'pm10', 'predicted_aqi'])
-        writer.writerow([datetime.now(), pm25, pm10, round(float(prediction), 2)])
+        writer.writerow([timestamp, pm25, pm10, round(float(prediction), 2)])
 
     return jsonify({"predicted_aqi": round(float(prediction), 2)})
 
@@ -43,6 +47,9 @@ def auto_predict():
 
     prediction = model.predict([[pm25, pm10]])[0]
 
+    ist = timezone('Asia/Kolkata')
+    timestamp = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+
     log_file = 'prediction_log.csv'
     file_exists = os.path.isfile(log_file)
 
@@ -50,7 +57,7 @@ def auto_predict():
         writer = csv.writer(log)
         if not file_exists:
             writer.writerow(['timestamp', 'pm25', 'pm10', 'predicted_aqi'])
-        writer.writerow([datetime.now(), pm25, pm10, round(float(prediction), 2)])
+        writer.writerow([timestamp, pm25, pm10, round(float(prediction), 2)])
 
     return jsonify({
         "live_pm25": pm25,
