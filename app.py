@@ -4,13 +4,15 @@ import numpy as np
 import csv
 import os
 from datetime import datetime
+import requests
 
 app = Flask(__name__)
 model = joblib.load("model.pkl")
 
 @app.route('/')
 def home():
-    return "Air Quality Prediction API is running! Use /predict to POST data or /dashboard to view logs."
+    return "Air Quality Prediction API is running! Use /predict to POST data, /form to input manually, /auto_predict for live data, or /dashboard to view logs."
+
 @app.route('/form')
 def form():
     return render_template('form.html')
@@ -32,6 +34,47 @@ def predict():
         writer.writerow([datetime.now(), pm25, pm10, round(float(prediction), 2)])
 
     return jsonify({"predicted_aqi": round(float(prediction), 2)})
+
+@app.route('/auto_predict')
+def auto_predict():
+    pm25, pm10 = get_live_pm_values()
+    if pm25 is None or pm10 is None:
+        return "Live data unavailable."
+
+    prediction = model.predict([[pm25, pm10]])[0]
+
+    log_file = 'prediction_log.csv'
+    file_exists = os.path.isfile(log_file)
+
+    with open(log_file, 'a', newline='') as log:
+        writer = csv.writer(log)
+        if not file_exists:
+            writer.writerow(['timestamp', 'pm25', 'pm10', 'predicted_aqi'])
+        writer.writerow([datetime.now(), pm25, pm10, round(float(prediction), 2)])
+
+    return jsonify({
+        "live_pm25": pm25,
+        "live_pm10": pm10,
+        "predicted_aqi": round(float(prediction), 2)
+    })
+
+def get_live_pm_values(city="Hyderabad"):
+    try:
+        url = f"https://api.openaq.org/v2/latest?city={city}"
+        response = requests.get(url)
+        results = response.json()["results"]
+
+        for location in results:
+            pm25 = pm10 = None
+            for m in location["measurements"]:
+                if m["parameter"] == "pm25":
+                    pm25 = m["value"]
+                elif m["parameter"] == "pm10":
+                    pm10 = m["value"]
+            if pm25 and pm10:
+                return pm25, pm10
+    except:
+        return None, None
 
 @app.route('/dashboard')
 def dashboard():
