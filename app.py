@@ -11,6 +11,9 @@ model = joblib.load("model.pkl")
 @app.route('/')
 def home():
     return "Air Quality Prediction API is running! Use /predict to POST data or /dashboard to view logs."
+@app.route('/form')
+def form():
+    return render_template('form.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
