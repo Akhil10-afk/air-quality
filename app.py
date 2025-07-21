@@ -8,6 +8,10 @@ from datetime import datetime
 app = Flask(__name__)
 model = joblib.load("model.pkl")
 
+@app.route('/')
+def home():
+    return "Air Quality Prediction API is running! Use /predict to POST data or /dashboard to view logs."
+
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
