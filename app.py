@@ -15,15 +15,13 @@ def predict():
     pm10 = data["pm10"]
     prediction = model.predict([[pm25, pm10]])[0]
 
-    # Check if the CSV file exists
     log_file = 'prediction_log.csv'
     file_exists = os.path.isfile(log_file)
 
-    # Append prediction to log
     with open(log_file, 'a', newline='') as log:
         writer = csv.writer(log)
         if not file_exists:
-            writer.writerow(['timestamp', 'pm25', 'pm10', 'predicted_aqi'])  # CSV header
+            writer.writerow(['timestamp', 'pm25', 'pm10', 'predicted_aqi'])
         writer.writerow([datetime.now(), pm25, pm10, round(float(prediction), 2)])
 
     return jsonify({"predicted_aqi": round(float(prediction), 2)})
@@ -36,7 +34,7 @@ def dashboard():
     try:
         with open('prediction_log.csv', newline='') as file:
             reader = csv.reader(file)
-            next(reader)  # Skip header
+            next(reader)
             for row in reader:
                 if len(row) == 4:
                     data.append(row)
@@ -55,4 +53,5 @@ def dashboard():
                            aqi_values=aqi_values)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
