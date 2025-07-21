@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AQI Dashboard</title>
+    <title>Air Quality Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0 20px 40px;
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #0077b6;
+            color: white;
             padding: 20px;
+            text-align: center;
         }
         h2 {
             margin-top: 40px;
+            color: #0077b6;
         }
         canvas {
-            max-width: 100%;
-            height: auto;
+            width: 100% !important;
+            max-width: 1000px;
+            margin: auto;
+            display: block;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 30px;
+            background-color: white;
         }
         th, td {
-            padding: 10px;
-            border: 1px solid #aaa;
+            padding: 12px;
+            border: 1px solid #ddd;
             text-align: center;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #e9ecef;
+        }
+        tr:last-child {
+            background-color: #d4edda; /* Highlight most recent row */
         }
     </style>
 </head>
 <body>
-    <h1>AQI Dashboard</h1>
 
-    <h2>Prediction Chart</h2>
+    <header>
+        <h1>Air Quality Index Dashboard</h1>
+        <p>Live AQI Predictions based on PM2.5 and PM10 values</p>
+    </header>
+
+    <h2>Predicted AQI Chart</h2>
     <canvas id="aqiChart"></canvas>
 
     <h2>Prediction Log</h2>
@@ -63,14 +82,17 @@
                 datasets: [{
                     label: 'Predicted AQI',
                     data: {{ aqi_values | safe }},
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: '#0077b6',
+                    backgroundColor: 'rgba(0, 119, 182, 0.1)',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
+                plugins: {
+                    legend: { display: true }
+                },
                 scales: {
                     x: {
                         title: {
@@ -87,12 +109,13 @@
                     y: {
                         title: {
                             display: true,
-                            text: 'AQI'
+                            text: 'Predicted AQI'
                         }
                     }
                 }
             }
         });
     </script>
+
 </body>
 </html>
