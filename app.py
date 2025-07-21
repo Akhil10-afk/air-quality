@@ -43,7 +43,7 @@ def predict():
 def auto_predict():
     pm25, pm10 = get_live_pm_values()
     if pm25 is None or pm10 is None:
-        return "Live data unavailable."
+        return jsonify({"error": "Live data unavailable."})
 
     prediction = model.predict([[pm25, pm10]])[0]
 
@@ -67,8 +67,9 @@ def auto_predict():
 
 def get_live_pm_values(city="Hyderabad"):
     try:
-        url = f"https://api.openaq.org/v2/latest?city={city}"
-        response = requests.get(url)
+        url = f"https://api.openaq.org/v3/latest?city={city}&parameter=pm25&parameter=pm10"
+        headers = {'accept': 'application/json'}
+        response = requests.get(url, headers=headers)
         results = response.json()["results"]
 
         for location in results:
@@ -78,7 +79,7 @@ def get_live_pm_values(city="Hyderabad"):
                     pm25 = m["value"]
                 elif m["parameter"] == "pm10":
                     pm10 = m["value"]
-            if pm25 and pm10:
+            if pm25 is not None and pm10 is not None:
                 return pm25, pm10
     except:
         return None, None
@@ -95,7 +96,7 @@ def dashboard():
             for row in reader:
                 if len(row) == 4:
                     data.append(row)
-        data.sort(reverse=True)  # Sort logs by most recent
+        data.sort(reverse=True)
         for row in data:
             timestamps.append(row[0])
             pm25_values.append(float(row[1]))
